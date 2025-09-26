@@ -11,7 +11,7 @@ export default function Login({ onLogin }) {
     e.preventDefault();
     try {
       const res = await axios.post("http://localhost:5000/login", form);
-      onLogin(res.data.user);
+      onLogin(res.data.user.username);
       setMessage("");
     } catch (err) {
       setMessage(err.response?.data?.error || "Error logging in");

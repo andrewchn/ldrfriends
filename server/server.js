@@ -4,7 +4,7 @@ const bcrypt = require("bcrypt");
 const cors = require("cors");
 
 const { connectDB, getDB } = require("./db");
-const { generateGroupCode } = require("./helpers/groupHelper");
+const { createGroup, joinGroup, leaveGroup, getUserGroup } = require("./helpers/groupHelper");
 require("dotenv").config();
 
 const app = express();
@@ -35,8 +35,9 @@ app.post("/signup", async (req, res) => {
       .collection("users")
       .insertOne({ username, password: hashedPassword });
 
-    res.json({ message: "User created", userId: result.insertedId });
+    res.json({ message: "User created", username: username });
   } catch (err) {
+    console.error(err);
     res.status(500).json({ error: err.message });
   }
 });
@@ -55,12 +56,31 @@ app.post("/login", async (req, res) => {
 
     res.json({
       message: "Login successful",
-      user: { id: user._id, username: user.username },
+      user: { id: user._id, username: username },
     });
   } catch (err) {
+    console.error(err);
     res.status(500).json({ error: err.message });
   }
 });
+
+app.get("/getusergroup", async (req, res) => {
+    console.log("GET /getusergroup");
+  try {
+    const db = getDB();
+    const { username } = req.query;
+
+    const groupCode = await getUserGroup(username, db);
+
+    res.json({
+      message: "User group found",
+      groupCode
+    });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: err.message });
+  }
+})
 
 app.post("/creategroup", async (req, res) => {
   console.log("POST /creategroup");
@@ -68,16 +88,14 @@ app.post("/creategroup", async (req, res) => {
     const db = getDB();
     const { username } = req.body;
 
-    const groupCode = await generateGroupCode(db);
-
-    await db.collection("groups").insertOne({ groupCode, users: [username] });
-    await db.collection("users").updateOne({ username }, { $set: { groupCode } });
+    const groupCode = await createGroup(username, db);
 
     res.json({
       message: "Group created",
-      user: { groupCode },
+      groupCode: groupCode
     });
   } catch (err) {
+    console.error(err);
     res.status(500).json({ error: err.message });
   }
 });
@@ -91,10 +109,29 @@ app.post("/joingroup", async (req, res) => {
     await joinGroup(username, groupCode, db);
 
     res.json({
-      message: "Group created",
-      user: { groupCode },
+      message: "Group joined",
+      groupCode,
     });
   } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.post("/leaveGroup", async (req, res) => {
+  console.log("POST /leaveGroup");
+  try {
+    const db = getDB();
+    const { username } = req.body;
+
+    await leaveGroup(username, groupCode, db);
+
+    res.json({
+      message: "Left group",
+      groupCode
+    });
+  } catch (err) {
+    console.error(err);
     res.status(500).json({ error: err.message });
   }
 });

@@ -1,6 +1,7 @@
 import { useState } from "react";
 import Login from "./components/Login";
 import Signup from "./components/Signup";
+import Main from "./components/Main";
 
 export default function App() {
   const [showSignup, setShowSignup] = useState(false);
@@ -29,11 +30,7 @@ export default function App() {
           )}
         </>
       ) : (
-        <div>
-          <h2>Welcome, {user.username}</h2>
-          <pre>{JSON.stringify(user, null, 2)}</pre>
-          <button onClick={() => setUser(null)}>Logout</button>
-        </div>
+        <Main username={user} />
       )}
     </div>
   );
