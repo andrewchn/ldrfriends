@@ -122,7 +122,7 @@ app.post("/leaveGroup", async (req, res) => {
   console.log("POST /leaveGroup");
   try {
     const db = getDB();
-    const { username } = req.body;
+    const { username, groupCode } = req.body;
 
     await leaveGroup(username, groupCode, db);
 

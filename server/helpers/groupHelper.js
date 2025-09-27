@@ -19,7 +19,7 @@ async function generateGroupCode(db) {
 
 async function createGroup(username, db) {
   if (!username) {
-    throw Error("Username cannot be null");
+    throw Error("Username is undefined");
   }
   const groupCode = await generateGroupCode(db);
 
@@ -32,19 +32,19 @@ async function createGroup(username, db) {
 }
 
 async function joinGroup(username, groupCode, db) {
-  const group = db.collection("groups").findOne({ groupCode });
-
+  const group = await db.collection("groups").findOne({ groupCode });
   if (!group) {
     throw Error(`Invalid groupCode ${groupCode}`);
+  }
+  if (!username) {
+    throw Error("Username is undefined");
   }
   if (group.users.length > 4) {
     throw Error(`Full group : groupCode ${groupCode}`);
   }
-
   if (group.users.includes(username)) {
     throw Error(`Group already contains ${username} : groupCode ${groupCode}`);
   }
-
   await db.collection("users").updateOne({ username }, { $set: { groupCode } });
   await db
     .collection("groups")
@@ -52,12 +52,13 @@ async function joinGroup(username, groupCode, db) {
 }
 
 async function leaveGroup(username, groupCode, db) {
-  const group = db.collection("groups").findOne({ groupCode });
-
+  const group = await db.collection("groups").findOne({ groupCode });
+  if (!username) {
+    throw Error("Username is undefined");
+  }
   if (!group) {
     throw Error(`Invalid groupCode ${groupCode}`);
   }
-
   if (!group.users.includes(username)) {
     throw Error(`Group does not contain ${username}" : groupCode ${groupCode}`);
   }
@@ -68,12 +69,20 @@ async function leaveGroup(username, groupCode, db) {
   await db
     .collection("groups")
     .updateOne({ groupCode }, { $pull: { users: username } });
+
+  const groupAfterLeave = await db.collection("groups").findOne({ groupCode });
+  if (groupAfterLeave && groupAfterLeave.users.length === 0) {
+    await db.collection("groups").deleteOne({ groupCode });
+  }
 }
 
 async function getUserGroup(username, db) {
-  const user = db.collection("users").findOne({ username });
-
   if (!username) {
+    throw Error("Username is undefined");
+  }
+  const user = await db.collection("users").findOne({ username });
+
+  if (!user) {
     throw Error(`Invalid username ${username}`);
   }
 

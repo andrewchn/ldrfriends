@@ -1,7 +1,8 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
+import Camera from "./Camera";
 
-function Main({ username }) {
+function Main({ username, onLogout }) {
   const [groupCode, setGroupCode] = useState(null);
   const [joinCode, setJoinCode] = useState(""); // new textbox for join
   const [loading, setLoading] = useState(true);
@@ -16,7 +17,7 @@ function Main({ username }) {
         const res = await axios.get(`${API_URL}/getusergroup`, {
           params: { username },
         });
-        setGroupCode(res.data.groupCode); 
+        setGroupCode(res.data.groupCode);
       } catch (err) {
         console.error("Error fetching user group:", err);
       } finally {
@@ -32,8 +33,7 @@ function Main({ username }) {
       setGroupCode(res.data.groupCode);
       setMessage(`Group created: ${res.data.groupCode}`);
     } catch (err) {
-      console.error(err);
-      setMessage("Error creating group");
+      setMessage(err.response?.data?.error || "Error creating group");
     }
   };
 
@@ -49,18 +49,18 @@ function Main({ username }) {
       setMessage(res.data.message || `Joined group ${joinCode}`);
     } catch (err) {
       console.error(err);
-      setMessage("Error joining group");
+      setMessage(err.response?.data?.error || "Error joining group");
     }
   };
 
   const handleLeaveGroup = async () => {
     try {
-      await axios.post(`${API_URL}/leavegroup`, { username });
+      await axios.post(`${API_URL}/leavegroup`, { username, groupCode });
       setGroupCode(null);
       setMessage("You left the group");
     } catch (err) {
       console.error(err);
-      setMessage("Error leaving group");
+      setMessage(err.response?.data?.error || "Error leaving group");
     }
   };
 
@@ -69,11 +69,15 @@ function Main({ username }) {
   return (
     <div style={{ padding: "20px", maxWidth: "400px" }}>
       <h2>Group Manager</h2>
-      <p><strong>User:</strong> {username}</p>
+      <p>
+        <strong>User:</strong> {username}
+      </p>
 
       {groupCode ? (
         <div>
-          <p>You are in group: <strong>{groupCode}</strong></p>
+          <p>
+            You are in group: <strong>{groupCode}</strong>
+          </p>
           <button onClick={handleLeaveGroup}>Leave Group</button>
         </div>
       ) : (
@@ -96,6 +100,12 @@ function Main({ username }) {
       )}
 
       {message && <p style={{ marginTop: "20px" }}>{message}</p>}
+
+      <Camera/>
+
+      <button onClick={onLogout} style={{ marginTop: "30px", color: "red" }}>
+        Logout
+      </button>
     </div>
   );
 }

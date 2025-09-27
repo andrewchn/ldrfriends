@@ -11,7 +11,7 @@ export default function Signup({ onSignup }) {
     e.preventDefault();
     try {
       const res = await axios.post("http://localhost:5000/signup", form);
-      onSignup({ username: form.username });
+      onSignup(res.data.username);
       setMessage("");
     } catch (err) {
       setMessage(err.response?.data?.error || "Error signing up");

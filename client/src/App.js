@@ -8,7 +8,9 @@ export default function App() {
   const [user, setUser] = useState(null);
 
   return (
-    <div style={{ maxWidth: "400px", margin: "50px auto", textAlign: "center" }}>
+    <div
+      style={{ maxWidth: "400px", margin: "50px auto", textAlign: "center" }}
+    >
       {!user ? (
         <>
           {showSignup ? (
@@ -30,7 +32,13 @@ export default function App() {
           )}
         </>
       ) : (
-        <Main username={user} />
+        <Main
+          username={user}
+          onLogout={() => {
+            setUser(null); 
+            setShowSignup(false); 
+          }}
+        />
       )}
     </div>
   );
